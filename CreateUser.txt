@@ -1,0 +1,45 @@
+                USER CREATION IN MONGODB
+         ====================================
+
+
+
+db.createUser({user:"admin_name", pwd:"1234",roles:["readWrite","dbAdmin"]})
+
+
+db.createUser({user:"saikiran", pwd:"saikiran",roles:["readWrite","dbAdmin"]})
+
+(ok tested)
+--------------------------------------------------------------------
+
+db.createUser({user:"admin_name", pwd:"1234", roles:[]})
+
+
+
+db.createUser({user:"sai", pwd:"sai", roles:[]})
+(ok tested)
+-----------------------------------------------------------------
+db.auth("admin_name", "1234")
+
+
+db.auth("saikiran", "saikiran");
+db.auth("sai", "sai");
+(ok tested)
+
+==============================================
+db.createCollection("stud");
+
+db.stud.insert({eid:1,ename:"saikiran",sal:2000,rale:"manager"});
+
+db.stud.find({
+    "ename": /s/
+}, {
+    "eid": 1,
+    "ename": 1,
+    "sal": 1
+});
+
+
+
+
+
+

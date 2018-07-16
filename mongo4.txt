@@ -1,0 +1,200 @@
+SQL Schema Statements	MongoDB Schema Statements
+CREATE TABLE people (
+    id MEDIUMINT NOT NULL
+        AUTO_INCREMENT,
+    user_id Varchar(30),
+    age Number,
+    status char(1),
+    PRIMARY KEY (id)
+)
+Implicitly created on first insertOne() or insertMany() operation. The primary key _id is automatically added if _id field is not specified.
+
+db.people.insertOne( {
+    user_id: "abc123",
+    age: 55,
+    status: "A"
+ } )
+However, you can also explicitly create a collection:
+
+db.people.find(
+    { },
+    { user_id: 0, status: 0 }
+)
+
+========================================
+db.people.find(
+    { status: "A", user_id: 0}
+)
+
+
+db.people.find(
+ { },
+    { status: 1}
+)
+
+--------------------------------------------
+db.people.find(
+    { $and: [ { status: "A" } ,
+             { age: 55 } ] }
+)----------------------------------
+
+db.people.find(
+    { age: { $gt: 25 } }
+)
+
+
+
+db.people.find(
+   { age: { $gt: 25, $lte: 55 } }
+)
+
+
+db.people.find(
+   $[{ age: { $gt: 25, $lte: 55 } ]}
+)
+
+
+
+
+db.people.insert({id:1,name:"saikiran",gender:"male"});
+
+
+
+db.people.find(
+
+{},
+   {name:1,gender:1 } 
+)
+
+
+db.people.find( { name: /sai/ } )
+
+
+
+db.people.find( { name: /^sai/ } )
+
+db.people.find( { status: "A" } ).sort( { user_id: 1 } )
+
+db.people.find( { status: "A" } ).sort( { user_id: -1 } )
+
+
+db.people.count()
+
+
+db.people.find( { age: { $gt: 30 } } ).count
+
+db.people.find( { age: { $gt: 30 } } ).count()
+
+
+db.people.aggregate( [ { $group : { _id : "$status" } } ] )
+
+db.people.distinct( "status" )
+
+
+
+db.people.find().limit(1).skip(0)
+
+
+
+
+db.people.find().explain()
+
+
+db.people.updateMany(
+   { status: "C" } ,
+   { $inc: { age: 3 } }
+)
+
+db.people.updateMany(
+   { age: { $gt: 25 } },
+   { $set: { status: "C" } }
+)
+
+
+db.people.insert({
+  _id: ObjectId("509a8fb2f3f4948bd2f983a0"),
+  user_id: "abc123",
+  age: 55,
+  status: 'A'
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

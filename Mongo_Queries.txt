@@ -1,0 +1,441 @@
+db.inventory.insertOne(
+   { item: "canvas", qty: 100, tags: ["cotton"], size: { h: 28, w: 35.5, uom: "cm" } }
+)
+----------------------------------------
+db.inventory.find( { item: "canvas" } )
+-------------------------------------------
+db.inventory.insertMany([
+   { item: "journal", qty: 25, tags: ["blank", "red"], size: { h: 14, w: 21, uom: "cm" } },
+   { item: "mat", qty: 85, tags: ["gray"], size: { h: 27.9, w: 35.5, uom: "cm" } },
+   { item: "mousepad", qty: 25, tags: ["gel", "blue"], size: { h: 19, w: 22.85, uom: "cm" } }
+])
+----------------------------------------
+db.inventory.find( {} )
+----------------------------------------
+db.collection.update() when used with the upsert: true option.
+db.collection.updateOne() when used with the upsert: true option.
+db.collection.updateMany() when used with the upsert: true option.
+db.collection.findAndModify() when used with the upsert: true option.
+db.collection.findOneAndUpdate() when used with the upsert: true option.
+db.collection.findOneAndReplace() when used with the upsert: true option.
+db.collection.save().
+db.collection.bulkWrite().
+---------------------------------------------
+Read Operations
+-------------------------------------------------------------------
+db.collection.find()
+
+db.inventory.insertMany([
+   { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+   { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A" },
+   { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+   { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+   { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" }
+]);
+----------------------------------------
+db.inventory.find( {} )
+--------------------------------------------
+db.inventory.find( { status: { $in: [ "A", "D" ] } } );
+--------------------------------------------------------
+The following example retrieves all documents in the inventory collection where the status equals "A" and qty is less than ($lt) 30:
+
+-------------------------------------------------
+Specify OR Conditions
+Using the $or operator, you can specify a compound query that joins each clause with a logical OR conjunction so that the query selects the documents in the collection that match at least one condition.
+
+The following example retrieves all documents in the collection where the status equals "A" or qty is less than ($lt) 30:
+-----
+db.inventory.find( { $or: [ { status: "A" }, { qty: { $lt: 30 } } ] } )
+---------------------------------------
+Specify AND as well as OR Conditions
+In the following example, the compound query document selects all documents in the collection where the status equals "A" and either qty is less than ($lt) 30 or item starts with the character p:
+
+db.inventory.find( {
+     status: "A",
+     $or: [ { qty: { $lt: 30 } }, { item: /^p/ } ]
+} )
+The operation corresponds to the following SQL statement:
+
+SELECT * FROM inventory WHERE status = "A" AND ( qty < 30 OR item LIKE "p%")
+--------------------------------------------
+db.inventory.insertMany( [
+   { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+   { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A" },
+   { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+   { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+   { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" }
+]);
+
+db.inventory.find( { size: { h: 14, w: 21, uom: "cm" } } );
+------------------------------------------
+db.inventory.find( { "size.uom": "in" } )
+
+db.inventory.find( { "size.h": { $lt: 15 } } )
+
+db.inventory.find( { "size.h": { $lt: 15 }, "size.uom": "in", status: "D" } )
+-----------------------------------------------
+db.inventory.insertMany([
+   { item: "journal", qty: 25, tags: ["blank", "red"], dim_cm: [ 14, 21 ] },
+   { item: "notebook", qty: 50, tags: ["red", "blank"], dim_cm: [ 14, 21 ] },
+   { item: "paper", qty: 100, tags: ["red", "blank", "plain"], dim_cm: [ 14, 21 ] },
+   { item: "planner", qty: 75, tags: ["blank", "red"], dim_cm: [ 22.85, 30 ] },
+   { item: "postcard", qty: 45, tags: ["blue"], dim_cm: [ 10, 15.25 ] }
+]);
+
+db.inventory.find( { tags: ["red", "blank"] } )
+----------------------------------------------------
+If, instead, you wish to find an array that contains both the elements "red" and "blank", without regard to order or other elements in the array, use the $all operator:
+
+db.inventory.find( { tags: { $all: ["red", "blank"] } } )
+-------------------------------------------------
+Query an Array for an Element
+
+db.inventory.find( { tags: "red" } )
+------------------------------------------------
+Specify Multiple Conditions for Array Elements
+
+db.inventory.find( { dim_cm: { $gt: 15, $lt: 20 } } )
+-------------------------------------------
+Query an Array of Embedded Document
+
+db.inventory.insertMany( [
+   { item: "journal", instock: [ { warehouse: "A", qty: 5 }, { warehouse: "C", qty: 15 } ] },
+   { item: "notebook", instock: [ { warehouse: "C", qty: 5 } ] },
+   { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 15 } ] },
+   { item: "planner", instock: [ { warehouse: "A", qty: 40 }, { warehouse: "B", qty: 5 } ] },
+   { item: "postcard", instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] }
+]);
+
+
+Query for a Document Nested in an Array
+The following example selects all documents where an element in the instock array matches the specified document:
+
+db.inventory.find( { "instock": { warehouse: "A", qty: 5 } } )
+
+
+---------------------------------------------
+Specify a Query Condition on a Field in an Array of Documents
+
+db.inventory.find( { 'instock.qty': { $lte: 20 } } )
+
+db.inventory.find( { 'instock.qty': { $lte: 20 } } )
+
+db.inventory.find( { 'instock.0.qty': { $lte: 20 } } )
+--------------------------------------------------------------
+A Single Nested Document Meets Multiple Query Conditions on Nested Fields
+
+
+db.inventory.find( { "instock": { $elemMatch: { qty: 5, warehouse: "A" } } } )
+
+The following example queries for documents where the instock array has at least one embedded document that contains the field qty that is greater than 10 and less than or equal to 20:
+
+db.inventory.find( { "instock": { $elemMatch: { qty: { $gt: 10, $lte: 20 } } } } )
+
+------------------------------------------------------------
+Combination of Elements Satisfies the Criteria
+
+
+db.inventory.find( { "instock.qty": { $gt: 10,  $lte: 20 } } )
+
+db.inventory.find( { "instock.qty": 5, "instock.warehouse": "A" } )
+------------------------------------------------------------
+
+Query an Array with Compound Filter Conditions on the Array Elements
+
+
+db.inventory.find( { dim_cm: { $gt: 15, $lt: 20 } } )
+
+Query for an Array Element that Meets Multiple Criteria
+Use $elemMatch operator to specify multiple criteria on the elements of an array such that at least one array element satisfies all the specified criteria.
+
+The following example queries for documents where the dim_cm array contains at least one element that is both greater than ($gt) 22 and less than ($lt) 30:
+
+db.inventory.find( { dim_cm: { $elemMatch: { $gt: 22, $lt: 30 } } } )
+
+
+-----------------------------------------------------------------
+NOTE
+
+When querying using dot notation, the field and nested field must be inside quotation marks.
+
+The following example queries for all documents where the second element in the array dim_cm is greater than 25:
+
+db.inventory.find( { "dim_cm.1": { $gt: 25 } } )
+
+----------------------------------------------------------------
+
+Query an Array by Array Length
+Use the $size operator to query for arrays by number of elements. For example, the following selects documents where the array tags has 3 elements.
+
+db.inventory.find( { "tags": { $size: 3 } } )
+
+
+------------------------------------------------------------------
+Update Operations
+
+
+Update operations modify existing documents in a collection. MongoDB provides the following methods to update documents of a collection:
+
+db.collection.updateOne() New in version 3.2
+db.collection.updateMany() New in version 3.2
+db.collection.replaceOne() New in version 3.2
+
+
+In MongoDB, update operations target a single collection. All write operations in MongoDB are atomic on the level of a single document.
+
+You can specify criteria, or filters, that identify the documents to update. These filters use the same syntax as read operations.
+
+db.inventory.insertMany( [
+   { item: "canvas", qty: 100, size: { h: 28, w: 35.5, uom: "cm" }, status: "A" },
+   { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+   { item: "mat", qty: 85, size: { h: 27.9, w: 35.5, uom: "cm" }, status: "A" },
+   { item: "mousepad", qty: 25, size: { h: 19, w: 22.85, uom: "cm" }, status: "P" },
+   { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "P" },
+   { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+   { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+   { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
+   { item: "sketchbook", qty: 80, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+   { item: "sketch pad", qty: 95, size: { h: 22.85, w: 30.5, uom: "cm" }, status: "A" }
+] );
+
+
+Update a Single Document
+The following example uses the db.collection.updateOne() method on the inventory collection to update the first document where item equals "paper":
+
+db.inventory.updateOne(
+   { item: "paper" },
+   {
+     $set: { "size.uom": "cm", status: "P" },
+     $currentDate: { lastModified: true }
+   }
+)
+-------------------------------------------------------------
+Update Multiple Documents
+
+
+New in version 3.2.
+
+The following example uses the db.collection.updateMany() method on the inventory collection to update all documents where qty is less than 50:
+
+db.inventory.updateMany(
+   { "qty": { $lt: 50 } },
+   {
+     $set: { "size.uom": "in", status: "P" },
+     $currentDate: { lastModified: true }
+   }
+)
+
+------------------------------------------------
+Update Operators
+The following modifiers are available for use in update operations; e.g. in db.collection.update() and db.collection.findAndModify().
+
+
+Update Operators
+Fields
+Name	Description
+$currentDate	Sets the value of a field to current date, either as a Date or a Timestamp.
+$inc	Increments the value of the field by the specified amount.
+$min	Only updates the field if the specified value is less than the existing field value.
+$max	Only updates the field if the specified value is greater than the existing field value.
+$mul	Multiplies the value of the field by the specified amount.
+$rename	Renames a field.
+$set	Sets the value of a field in a document.
+$setOnInsert	Sets the value of a field if an update results in an insert of a document. Has no effect on update operations that modify existing documents.
+$unset	Removes the specified field from a document.
+
+
+Array
+Operators
+Name	Description
+$	Acts as a placeholder to update the first element that matches the query condition.
+$[]	Acts as a placeholder to update all elements in an array for the documents that match the query condition.
+$[<identifier>]	Acts as a placeholder to update all elements that match the arrayFilters condition for the documents that match the query condition.
+$addToSet	Adds elements to an array only if they do not already exist in the set.
+$pop	Removes the first or last item of an array.
+$pull	Removes all array elements that match a specified query.
+$push	Adds an item to an array.
+$pullAll	Removes all matching values from an array.
+Modifiers
+Name	Description
+$each	Modifies the $push and $addToSet operators to append multiple items for array updates.
+$position	Modifies the $push operator to specify the position in the array to add elements.
+$slice	Modifies the $push operator to limit the size of updated arrays.
+$sort	Modifies the $push operator to reorder documents stored in an array.
+Bitwise¶
+Name	Description
+$bit	Performs bitwise AND, OR, and XOR updates of integer values.
+
+
+------------------------------------------------------
+
+Replace a Document
+To replace the entire content of a document except for the _id field, pass an entirely new document as the second argument to db.collection.replaceOne()
+
+The replacement document can have different fields from the original document. In the replacement document, you can omit the _id field since the _id field is immutable; however, if you do include the _id field, it must have the same value as the current value.
+
+The following example replaces the first document from the inventory collection where item: "paper":
+
+db.inventory.replaceOne(
+   { item: "paper" },
+   { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 40 } ] }
+)
+
+----------------------------------------------------------
+Atomicity and Transactions
+
+Atomicity
+In MongoDB, a write operation is atomic on the level of a single document, even if the operation modifies multiple embedded documents within a single document.
+
+Multi-Document Transactions
+When a single write operation (e.g. db.collection.updateMany()) modifies multiple documents, the modification of each document is atomic, but the operation as a whole is not atomic.
+
+When performing multi-document write operations, whether through a single write operation or multiple write operations, other operations may interleave.
+
+Starting in version 4.0, for situations that require atomicity for updates to multiple documents or consistency between reads to multiple documents, MongoDB provides multi-document transactions for replica sets.
+
+IMPORTANT
+
+In most cases, multi-document transaction incurs a greater performance cost over single document writes, and the availability of multi-document transaction should not be a replacement for effective schema design. For many scenarios, the denormalized data model (embedded documents and arrays) will continue to be optimal for your data and use cases. That is, for many scenarios, modeling your data appropriately will minimize the need for multi-document transactions.
+
+Concurrency Control
+Concurrency control allows multiple applications to run concurrently without causing data inconsistency or conflicts.
+
+One approach is to create a unique index on a field that can only have unique values. This prevents insertions or updates from creating duplicate data. Create a unique index on multiple fields to force uniqueness on that combination of field values. For examples of use cases, see update() and Unique Index and findAndModify() and Unique Index.
+
+Another approach is to specify the expected current value of a field in the query predicate for the write operations.
+
+
+-----------------------------------------------------------------
+Behavior
+Atomicity
+All write operations in MongoDB are atomic on the level of a single document. For more information on MongoDB and atomicity, see Atomicity and Transactions.
+
+_id Field
+Once set, you cannot update the value of the _id field nor can you replace an existing document with a replacement document that has a different _id field value.
+
+Document Size
+When performing update operations that increase the document size beyond the allocated space for that document, the update operation relocates the document on disk.
+
+Field Order
+MongoDB preserves the order of the document fields following write operations except for the following cases:
+
+The _id field is always the first field in the document.
+Updates that include renaming of field names may result in the reordering of fields in the document.
+Changed in version 2.6: Starting in version 2.6, MongoDB actively attempts to preserve the field order in a document. Before version 2.6, MongoDB did not actively preserve the order of the fields in a document.
+
+Upsert Option
+If updateOne(), updateMany(), or replaceOne() includes upsert : true and no documents match the specified filter, then the operation creates a new document and inserts it. If there are matching documents, then the operation modifies or replaces the matching document or documents.
+
+For details on the new document created, see the individual reference pages for the methods.
+
+Write Acknowledgement¶
+With write concerns, you can specify the level of acknowledgement requested from MongoDB for write operations. For details, see Write Concern.
+
+
+----------------------------------------------------
+$rename
+
+
+db.students.update( { _id: 1 }, { $rename: { 'nickname': 'alias', 'cell': 'mobile' } } )
+
+------------------------------------------------
+
+The new field name must differ from the existing field name. To specify a <field> in an embedded document, use dot notation.
+
+db.students.update( { _id: 1 }, { $rename: { 'nickname': 'alias', 'cell': 'mobile' } } )
+
+
+
+The new field name must differ from the existing field name. To specify a <field> in an embedded document, use dot notation.
+
+Consider the following example:
+
+db.students.update( { _id: 1 }, { $rename: { 'nickname': 'alias', 'cell': 'mobile' } } )
+This operation renames the field nickname to alias, and the field cell to mobile.
+
+Behavior
+The $rename operator logically performs an $unset of both the old name and the new name, and then performs a $set operation with the new name. As such, the operation may not preserve the order of the fields in the document; i.e. the renamed field may move within the document.
+
+If the document already has a field with the <newName>, the $rename operator removes that field and renames the specified <field> to <newName>.
+
+If the field to rename does not exist in a document, $rename does nothing (i.e. no operation).
+
+For fields in embedded documents, the $rename operator can rename these fields as well as move the fields in and out of embedded documents. $rename does not work if these fields are in array elements.
+
+Examples
+A collection students contains the following documents where a field nmae appears misspelled, i.e. should be name:
+
+{
+  "_id": 1,
+  "alias": [ "The American Cincinnatus", "The American Fabius" ],
+  "mobile": "555-555-5555",
+  "nmae": { "first" : "george", "last" : "washington" }
+}
+
+{
+  "_id": 2,
+  "alias": [ "My dearest friend" ],
+  "mobile": "222-222-2222",
+  "nmae": { "first" : "abigail", "last" : "adams" }
+}
+
+{
+  "_id": 3,
+  "alias": [ "Amazing grace" ],
+  "mobile": "111-111-1111",
+  "nmae": { "first" : "grace", "last" : "hopper" }
+}
+The examples in this section successively updates the documents in the collection.
+
+Rename a Field
+To rename a field, call the $rename operator with the current name of the field and the new name:
+
+db.students.updateMany( {}, { $rename: { "nmae": "name" } } )
+This operation renames the field nmae to name for all documents in the collection:
+
+{
+  "_id": 1,
+  "alias": [ "The American Cincinnatus", "The American Fabius" ],
+  "mobile": "555-555-5555",
+  "name": { "first" : "george", "last" : "washington" }
+}
+
+{
+   "_id" : 2,
+   "alias" : [ "My dearest friend" ],
+   "mobile" : "222-222-2222",
+   "name" : { "first" : "abigail", "last" : "adams" }
+}
+
+{ "_id" : 3,
+  "alias" : [ "Amazing grace" ],
+  "mobile" : "111-111-1111",
+  "name" : { "first" : "grace", "last" : "hopper" } }
+Rename a Field in an Embedded Document
+To rename a field in an embedded document, call the $rename operator using the dot notation to refer to the field. If the field is to remain in the same embedded document, also use the dot notation in the new name, as in the following:
+
+db.students.update( { _id: 1 }, { $rename: { "name.first": "name.fname" } } )
+This operation renames the embedded field first to fname:
+
+{
+  "_id" : 1,
+  "alias" : [ "The American Cincinnatus", "The American Fabius" ],
+  "mobile" : "555-555-5555",
+  "name" : { "fname" : "george", "last" : "washington" }
+}
+Rename a Field That Does Not Exist
+When renaming a field and the existing field name refers to a field that does not exist, the $rename operator does nothing, as in the following:
+
+db.students.update( { _id: 1 }, { $rename: { 'wife': 'spouse' } } )
+This operation does nothing because there is no field named wife.
+
+-----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
